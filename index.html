@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Bay of Bengal Map</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+  <!-- Leaflet.Animated -->
+  <script src="https://unpkg.com/leaflet.animated@1.5.0/dist/leaflet.animated.js"></script>
+  <!-- Include Leaflet CSS and JavaScript -->
+  <link rel="stylesheet" href="https://u...content-available-to-author-only...g.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://u...content-available-to-author-only...g.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- Include Leaflet Velocity CSS and JavaScript -->
+  <link rel="stylesheet" href="https://u...content-available-to-author-only...g.com/leaflet-velocity@1.5.0/dist/leaflet-velocity.css" />
+  <script src="https://u...content-available-to-author-only...g.com/leaflet-velocity@1.5.0/dist/leaflet-velocity.min.js"></script>
+
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div id="map"></div>
+
+  <script>
+
+    // Initialize map 
+    var map = L.map('map').setView([21.6, 90.5], 8); // Adjust the center and zoom level
+
+    // Add OpenStreetMap base layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Define zone polygons
+    var zone1 = L.polygon([
+      // ... (your polygon coordinates)
+      [22.3, 91.78],
+      [21.9, 91.85],
+      [21.84, 91.8],
+      [21.4, 91.82],
+      [21.4, 91.82],
+      [21.4, 91.82],
+      [21.4, 91.82],
+      [21.4, 91.82],
+      [21, 92.2],
+      [20.7, 92.25],
+      [21.32, 91.82],
+      [21.44, 91.01]
+    ]).addTo(map).bindPopup("Zone 1<br>Temperature: 24°C-32°C<br>BOD: 119 mg/L - 146 mg/L<br>COD: 75 mg/L - 93 mg/L<br>Salinity: 20% - 29%").setStyle({ color: 'green' });
+
+    var zone2 = L.polygon([
+      // ... (your polygon coordinates)
+      [21.9, 90.01],
+      [21.84, 90.07],
+      [21.81, 90.11],
+      [21.795, 90.15],
+      [21.803, 90.20],
+      [21.84, 90.25],
+      [21.88, 90.305],
+      [21.85, 90.32],
+      [21.83, 90.4],
+      [21.83, 90.475],
+      [21.89, 91.1],
+      [22.3, 91.77],
+      [21.44, 91.0],
+      [21.41, 89.95]
+    ]).addTo(map).bindPopup("Zone 2<br>Temperature: 23°C-30°C<br>BOD: 118 mg/L - 145 mg/L<br>COD: 72 mg/L - 87 mg/L<br>Salinity: 18% - 26%").setStyle({ color: 'red' });
+
+    var zone3 = L.polygon([
+      // ... (your polygon coordinates)
+      [21.6, 89.17],
+      [21.43, 89.19],
+      [21.41, 89.35],
+      [21.41, 89.94],
+      [21.9, 90]
+    ]).addTo(map).bindPopup("Zone 3<br>Temperature: 22°C-29°C<br>BOD: 117 mg/L - 142 mg/L<br>COD: 72 mg/L - 86 mg/L<br>Salinity: 17% - 25%").setStyle({ color: 'blue' });
+
+    // Create a geoJSON object for the water flow path
+    var waterFlowPath = {
+      // ... (your water flow path coordinates)
+      "type": "Feature",
+      "properties": {
+        "stroke": "white",
+        "stroke-width": 5
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [21.44, 91.0],
+          [21.84, 91.8],
+          [21.44, 91.01]
+        ]
+      }
+    };
+
+    // Create a geoJSON layer for the water flow path with animation
+    var waterFlowLayer = L.geoJSON(waterFlowPath, {
+      style: function (feature) {
+        return {
+          color: feature.properties.stroke,
+          weight: feature.properties["stroke-width"]
+        };
+      },
+      onEachFeature: function (feature, layer) {
+        layer.animate({
+          color: 'red',
+          weight: 5
+        }, {
+          duration: 30000, // Animation duration in milliseconds
+          easing: 'linear',
+          interval: 100 // Interval between animation frames in milliseconds
+        });
+      }
+    }).addTo(map);
+
+    // Start the water flow animation
+    waterFlowLayer.animate();
+
+    // Fetch the external wind velocity data (replace with the correct URL)
+    fetch('https://r...content-available-to-author-only...t.com/onaci/leaflet-velocity/master/demo/water-gbr.json')
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        // Create a Leaflet Velocity layer
+        L.velocityLayer({
+          displayValues: true,
+          displayOptions: {
+            velocityType: 'Global Wind',
+            displayPosition: 'bottomleft',
+            displayEmptyString: 'No wind data'
+          },
+          data: data
+        }).addTo(map);
+      })
+      .catch(function (error) {
+        console.error('Error fetching data:', error);
+      });
+
+    // Fit the map view to the polygons
+    var polygonGroup = L.featureGroup([zone1, zone2, zone3]);
+    map.fitBounds(polygonGroup.getBounds());
+
+  </script>
+
+</body>
+
+</html>
